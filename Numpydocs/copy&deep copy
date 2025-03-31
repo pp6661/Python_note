@@ -1,0 +1,20 @@
+import numpy as np
+a=np.arange(4)
+print(a)
+
+b=a
+c=a
+d=b
+a[0]=11
+print(a)
+print(b is a)
+print(b)
+d[1:3]=[22,33]
+print(d)
+print(a)
+print("--------")
+b=a.copy() #deep copy ：b copy a 的值但是没关联起来
+print(b)
+a[3]=44
+print(a)
+print(b)
