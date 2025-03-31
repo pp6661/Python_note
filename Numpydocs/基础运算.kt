@@ -41,3 +41,26 @@ print(np.sum(d,axis=1))#行
 print(np.min(d,axis=0))#列
 print(np.max(d,axis=1))
 
+#基础运算2
+import numpy as np
+
+A = np.arange(14, 2, -1).reshape((3, 4))
+print(A)
+print(np.argmin(A))  # 最小值的索引
+print(np.argmax(A))
+print(np.average(A))
+print(np.median(A))  # 中位数
+
+print("_______")
+print(A)
+print(np.cumsum(A))  # 累加
+print(np.diff(A))  # 累差
+print(np.nonzero(A))  # 行数组，列数组
+print(np.sort(A))
+print(np.transpose(A))  # 矩阵反向，行变列，列变行
+print(A.T.dot(A))
+print(np.clip(A, 5, 9)) #在5-9之间的数保留,大于9变9
+print(np.mean(A,axis=0)) #0对行计算平均值
+
+
+
