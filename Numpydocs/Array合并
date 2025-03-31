@@ -1,0 +1,14 @@
+import numpy as np
+A=np.array([1,1,1]) #一维数组，长度为三 (3,)
+B=np.array([2,2,2])
+A=A[:,np.newaxis] # 将 A 转为列向量，形状变为 (3, 1) 在列上加了维度
+B=B[:,np.newaxis] # 将 B 转为列向量，形状变为 (3, 1)
+C=np.vstack((A,B)) # vertical stack 上下合并,生成二维数组
+print(A.shape,C.shape)
+D=np.hstack((A,B)) # horizontal stack 左右合并
+print(D)
+print(A.shape,D.shape)
+
+print("--------")
+E=np.concatenate((A,B,B,A),axis=1) # 多个横向合并
+print(E)
