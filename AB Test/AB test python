@@ -9,30 +9,41 @@ page_df.head()
 print('数据行数：', page_df.shape[0])
 print('独立用户数：', page_df.user_id.nunique())
 
+# 标记出在该列中出现次数超过 1 次的所有行，返回一个布尔 Series。  将筛选后的结果按照 user_id 列的值升序排序
 var = page_df[page_df.user_id.duplicated(keep=False)].sort_values(by='user_id').head(10)
 print(var)
 
+# 查看group和landing_page不匹配的数量
 mismatch = ((page_df['group'] == 'treatment') != (page_df['landing_page'] == 'new_page'))
 print('不匹配数：', mismatch.sum())
 
+# 把不符的数据剔除：即 mismatch == False的行，并复制成一个新的 DataFrame 存到 match_df
 match_df = page_df[~mismatch].copy()  # ~表示按位取反
 print('数据行数：', match_df.shape[0])
 print('独立用户数：', match_df.user_id.nunique())
 
+# 仍旧有重复的用户id，查看：
 var1 = match_df[match_df.user_id.duplicated(keep=False)]
+print("仍旧有重复的用户id，查看：")
 print(var1)
+# drop_duplicates(...)删除
+# subset=['user_id'] 告诉函数“判断重复”时，只考虑 user_id 这一列：
+# keep='last'当有重复时，保留最后一条出现的记录（按 DataFrame 当前排序中的顺序）,其他同一 user_id 的行会被删除。
 match_df = match_df.drop_duplicates(subset=['user_id'], keep='last')
+
 # 检查缺失值
 var2 = match_df.isnull().sum()
+print("检查缺失值:")
 print(var2)
-
+print("-------------")
 # 收到新页面的用户占比多少
 var3 = match_df[match_df.landing_page == "new_page"].shape[0] / match_df.shape[0]
-print(var3)
+print(f"收到新页面的用户占比为：{var3}")
 
-print("-------------")
+print("------假设检验-------")
 # 假设检验
 # 旧版、新版用户数
+# group=="control" 或 group=="treatment"：表示是对照组或实验组
 n_old = match_df.query('group=="control"').shape[0]
 n_new = match_df.query('group=="treatment"').shape[0]
 # 旧版、新版转化用户数
@@ -53,6 +64,8 @@ print('检验统计量z:', z)
 
 from scipy.stats import norm
 
+# ppf 是 percent point function（百分位点函数），也叫 逆累积分布函数； 它的作用是：给定概率 p，返回标准正态分布中该概率对应的 Z 值（即横坐标值）；
+# norm.ppf(0.05) 表示：“标准正态分布中左边 5% 所对应的 Z 值”。
 z_alpha = norm.ppf(0.05)  # 若为双侧，则norm.ppf(0.05/2)
 
 # 合并标准差
@@ -90,16 +103,16 @@ match_diff = match_df[match_df.landing_page == "old_page"]['converted'].mean() -
              match_df[match_df.landing_page == "new_page"]['converted'].mean()
 print('ab_data.csv样本的转化率差值:', match_diff)
 
-diffs=[]
-for i in range(10000):
-    p_new_diff = np.random.choice(2,size=n_new,p=[1-p_all,p_all]).mean()
-    p_old_diff = np.random.choice(2,size=n_old,p=[1-p_all,p_all]).mean()
-    diffs.append(p_old_diff - p_new_diff)
+diffs = []  # 存放每次模拟的转化率差值
 
-diffs = np.array(diffs)
-plt.hist(diffs)
-plt.axvline(match_diff)
-(diffs < match_diff).mean()
+for i in range(10000):  # 成 0/1 随机样本，1 表示转化成功
+    p_new_diff = np.random.choice(2, size=n_new, p=[1 - p_all, p_all]).mean()  # 计算模拟样本的平均转化率
+    p_old_diff = np.random.choice(2, size=n_old, p=[1 - p_all, p_all]).mean()
+    diffs.append(p_old_diff - p_new_diff)  # 保存差值（对照组 - 实验组）
 
+diffs = np.array(diffs)  # 前面收集的列表 diffs 转换为 NumPy 数组，便于后续统计分析。
+plt.hist(diffs)  # 画出差值的直方图
+plt.axvline(match_diff)  # 在图上画一条垂直线，位置是实观察到的差值
+(diffs < match_diff).mean()  # 计算 diffs 中有多少比例的值比真实差值还小
 
 plt.show()
